@@ -59,7 +59,7 @@ print(f"Lasso r^2 on test data : {r2_score_lasso:.3f}")
 from sklearn.linear_model import ARDRegression
 
 t0 = time()
-ard = ARDRegression.fit(X_train, y_train)
+ard = ARDRegression().fit(X_train, y_train)
 print(f"ARD fit done in {(time() - t0)}")
 y_pred_ard = ard.predict(X_test)
 r2_score_ard = r2_score(y_test, y_pred_ard)
@@ -76,3 +76,36 @@ print(f"ElasticNet fit done in {(time() - t0):.3f}s")
 y_pred_enet = enet.predict(X_test)
 r2_score_enet = r2_score(y_test, y_pred_enet)
 print(f"ElasticNet r^2 on test data : {r2_score_enet:.3f}")
+
+# Plot and analyze the results using heatmap to visualize sparsity of true and estimated coef of linear models
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from matplotlib.colors import SymLogNorm
+
+df = pd.DataFrame(
+    {
+        "True coefficients": true_coef,
+        "Lasso": lasso.coef_,
+        "ARDRegression": ard.coef_,
+        "ElasticNet": enet.coef_,
+    }
+)
+
+plt.figure(figsize=(10, 6))
+ax = sns.heatmap(
+    df.T,
+    norm=SymLogNorm(linthresh=10e-4, vmin=-1, vmax=1),
+    cbar_kws={"label": "coefficients' values"},
+    cmap="seismic_r",
+)
+plt.ylabel("linear model")
+plt.xlabel("coefficients")
+plt.title(
+    f"Models' coefficients\nLasso $R^2$: {r2_score_lasso:.3f}, "
+    f"ARD $R^2$: {r2_score_ard:.3f}, "
+    f"ElasticNet $R^2$: {r2_score_enet:.3f}"
+)
+plt.tight_layout()
+plt.show()
